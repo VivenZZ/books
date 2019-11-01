@@ -12,26 +12,12 @@ let cheerio = require('cheerio');
 // mongo
 let mongoose = require('mongoose');
 // 链接数据库
-let db = require('../db/index.js');
+let mongodb = require('../db/index.js');
 
+let Book = mongodb.Book;
 
 router.get('/', function(req, res, next) {
   // 首先读取数据库，获取内容
-  // 定义书籍列表模型
-  let bookSchema = new mongoose.Schema({
-    ID: String, // 自动获取id
-    name: String, // 名称
-    href: String, // 地址
-    Author: String, // 作者
-    newChapter: String, // 最新章节
-    uptime: String, // 更新时间
-    description: String, // 简介
-    img: String, // 封面图
-    novelclass: String, // 分类
-    imgPath: String, // 封面图本地路径
-    status: Boolean // 状态 连载or完本
-  });
-  let Book = mongoose.model('book', bookSchema);
 
   // 读取数据库里面的数据
   Book.find({}).exec(function (err, books) {
@@ -53,17 +39,19 @@ router.get('/', function(req, res, next) {
       // 定义章节列表
       let bookContent = [];
 
-      const res = await superagent.get(href).charset('gbk');;
+      const res = await superagent.get(href).charset('gbk');
       let $ = cheerio.load(res.text);
       $("#list dd").each((idx, ele) => {
         let title = $(ele).find('a').text();
         let href =  $(ele).find('a').attr('href');
         // 这里获取每个章节的信息
+        let chapterId = mongoose.Types.ObjectId();
         bookContent.push({
+          _id: chapterId,
           title,
           href,
           bookId,
-          path: path.join(__dirname,`../bookList/book/${bookId}/${title}.txt`)
+          path: path.join(__dirname,`../bookList/book/${bookId}/${chapterId}.txt`)
         })
       });
       return bookContent;

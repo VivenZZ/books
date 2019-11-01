@@ -12,28 +12,12 @@ let cheerio = require('cheerio');
 // mongo
 let mongoose = require('mongoose');
 // 链接数据库
-let db = require('../db/index.js');
+let mongodb = require('../db/index.js');
 
-
-
+let Book = mongodb.Book;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    // 定义书籍列表模型
-    let bookSchema = new mongoose.Schema({
-        ID: String, // 自动获取id
-        name: String, // 名称
-        href: String, // 地址
-        Author: String, // 作者
-        newChapter: String, // 最新章节
-        uptime: String, // 更新时间
-        description: String, // 简介
-        img: String, // 封面图
-        novelclass: String, // 分类
-        imgPath: String, // 封面图本地路径
-        status: Boolean // 状态 连载or完本
-    });
-    let Book = mongoose.model('book', bookSchema);
 
 
 // 定义书籍列表
@@ -81,13 +65,12 @@ router.get('/', function(req, res, next) {
      */
     async function getBook(href, book) {
         try {
-            const res = await superagent.get(href).charset('gbk');;
+            const res = await superagent.get(href).charset('gbk');
             let $ = cheerio.load(res.text);
             book.uptime = $("#info p").eq(2).text().replace('最后更新：','');
             book.newChapter = $("#info p").eq(3).text().replace('最新章节： ','');
             book.description = $("#intro p").eq(1).text();
             book.img = 'https://www.biquge.tv' + $("#fmimg img").attr('src');
-            book.imgPath = path.join(__dirname,`../bookList/image/${book.name}.png`);
             $("#list dd").each((idx, ele) => {
                 let title = $(ele).find('a').text();
                 let href =  $(ele).find('a').attr('href');
@@ -112,8 +95,11 @@ router.get('/', function(req, res, next) {
                     } else {
                         // 如果书籍不存在 添加书籍
                         if (book.length == 0) {
+                            let bookId = mongoose.Types.ObjectId();
+                            val.imgPath = path.join(__dirname,`../bookList/image/${bookId}.png`);// 封面图本地路径
                             saveImage(val.img, val.imgPath);
                             let book = new Book({
+                                _id: bookId,
                                 name: val.name, // 名称
                                 href: val.href, // 地址
                                 Author: val.Author, // 作者
