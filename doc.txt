@@ -1,0 +1,27 @@
+爬取小说步骤
+一、 添加小说列表
+    1. 进入小说网站，获取书籍列表，检测数据库中是否有相同的书籍(通过书籍名，检测超出2本，检查作者)，没有就提交，有就pass
+    2. 如果没有相同书籍，获取书籍名和作者等有限信息创建book
+        {
+             ID: int // 自动获取id
+             name: string, // 名称
+             href: string, // 地址
+             Author: string, // 作者
+             newChapter: string, // 最新章节
+             uptime: string, // 更新时间
+             description: string, // 简介
+             img: string, // 封面图
+             novelclass: string // 分类
+             path: string // 封面图本地路径
+             status：boolean // 状态 连载or完本
+        }
+    3. 根据href,进入书籍详情列表，获取详细信息，补全book，添加到数据库bookList
+二、获取小说章节列表
+    1. 读取数据库，根据href进入小说详情页，获取书籍ID，检测bookContent数据库中是否函数相同ID，如果有则检测相同ID书籍章节数，与当前小说详情页的章节数是否相等，当前小说详情页章节数>数据库，则添加数据库数量之后的几章。如果没有相同书籍ID，则全部获取添加chapter
+            {
+                ID： int 自动获取章节id
+                bookId: int 书籍ID
+                title: string 标题
+                path: string 内容路径
+            }
+    2. 将数据添加到数据库，同时将章节内容存放到path路劲下。
