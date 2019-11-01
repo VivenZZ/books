@@ -25,3 +25,8 @@
                 path: string 内容路径
             }
     2. 将数据添加到数据库，同时将章节内容存放到path路劲下。
+
+
+提示：
+    在根目录下新建bookList/book  bookList/image 文件夹
+    开启mongodb  进入mongodb的bin 目录下执行 mongod --dbpath: mongodb的bin目录路径
