@@ -19,8 +19,9 @@ let bookSchema = new mongoose.Schema({
     status: Boolean // 状态 连载or完本
 });
 // 定义书籍模型
-let bookContent = new mongoose.Schema({
+let bookContentSchema = new mongoose.Schema({
     ID: String, // id
+    href: String,
     bookId: String, // 书籍id
     title: String, // 书籍标题
     path: String // 书籍路径
@@ -28,5 +29,5 @@ let bookContent = new mongoose.Schema({
 
 let mongodb = {};
 mongodb.Book = mongoose.model('book', bookSchema);
-mongodb.BookContent = mongoose.model('bookContent', bookSchema);
+mongodb.BookContent = mongoose.model('bookContent', bookContentSchema);
 module.exports = mongodb;
