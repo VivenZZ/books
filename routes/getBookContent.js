@@ -49,9 +49,11 @@ router.get('/', function(req, res, next) {
                     });
                     // 遍历 获取的章节，从后依次向前
                     for (let i = bookContentList.length - 1; i > 0 ; i--) {
+                        // 判断数据库中的标题可包含当前标题，包含则退出循环
                         if (list.includes(bookContentList[i].title)) {
                             return;
                         } else {
+                            // 不包含当前章节，则添加当前章节到数据库。
                             let bookContet = new BookContent({
                                 _id: bookContentList[i]._id, // id
                                 href: bookContentList[i].href,
