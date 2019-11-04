@@ -82,7 +82,12 @@ router.get('/', function(req, res, next) {
         }
     }
 
-    getBookList('http://www.xbiquge.la/dushixiaoshuo/', 'dushixiaoshuo').then(books=>{
+    /**
+     * http://www.xbiquge.la/xuanhuanxiaoshuo/
+     * http://www.xbiquge.la/xiuzhenxiaoshuo/
+     * http://www.xbiquge.la/dushixiaoshuo/
+     */
+    getBookList('http://www.xbiquge.la/xuanhuanxiaoshuo/', 'dushixiaoshuo').then(books=>{
         books.forEach((item, index) => {
             // 需要通过上面获得的书籍href进入详情页 获取详细信息
             getBook(item.href, item).then(val=>{

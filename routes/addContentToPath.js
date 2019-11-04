@@ -44,13 +44,24 @@ router.get('/', function(req, res, next) {
                 console.log(`================${name}存在,开始更新=====================`);
                 number = checkFileNumber(`../bookList/books/${name}`);
             }else {
-                console.log(`================${name}不存在,开始下载=====================`)
+                console.log(`================${name}不存在,开始下载=====================`);
                 number = 0;
             }
             BookContent.find({
                 bookId: ID,
                 chapterNumber: {$gt: number}
             }).exec(function (err, bookContents) {
+                console.log(bookContents.length)
+                async.mapLimit(bookContents, 10, (bookContent, callback) => {
+                    mkDir(`../bookList/books/${name}`,
+                        `../bookList/books/${name}/${bookContent.chapterNumber}.txt`,
+                        '',
+                        callback);
+                }, (err,results) =>{
+                    if (err) console.log(err);
+                });
+                /*
+                * 这里暂时不要下载，等前端有人看书的时候下载。暂时只建目录
                 // 循环结果根据href字段找到章节内容
                 async.mapLimit(bookContents, 50, (bookContent, callback) => {
                     let url = href + bookContent.href.match(/([0-9]+).html/)[0];
@@ -59,13 +70,13 @@ router.get('/', function(req, res, next) {
                         mkDir(`../bookList/books/${name}`,
                             `../bookList/books/${name}/${bookContentNumber}.txt`,
                             data);
-                        callback(null,`${name}下载完成`);
+                        callback(null,`${bookContent.title}下载完成`);
                     });
                 }, function(err, results){
                     console.log(results)
-                });
+                });*/
+                callback(null, `${name}书籍下载完成`)
             })
-            callback(null, '书籍下载完成')
         }, (err, results) => {
             if (err) {
                 console.log(err)

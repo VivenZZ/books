@@ -48,13 +48,14 @@ async function dirExists(dir){
  * @param dir './2019/a/b
  * @param path './2019/a/b/1.txt
  * @param data '数据源'
+ * @param callback 异步调用，用于高并发处理
  * @returns {Promise<void>}
  */
-async function mkDir(dir, path, data){
+async function mkDir(dir, path, data, callback){
     await dirExists(dir);
     fs.writeFile(path, data, err => {
-        if(err) return console.log('写入失败' + err);
-        console.log(`${path}写入成功`)
+        if(err) return console.log(`${path}写入失败${err}`);
+        callback(err,'${path}写入成功')
     })
 }
 
