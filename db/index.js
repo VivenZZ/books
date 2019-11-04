@@ -22,6 +22,7 @@ let bookSchema = new mongoose.Schema({
 let bookContentSchema = new mongoose.Schema({
     ID: String, // id
     href: String,
+    chapterNumber: Number,
     bookId: String, // 书籍id
     title: String, // 书籍标题
     path: String // 书籍路径

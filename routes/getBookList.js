@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
-const https = require('https');
+const http = require('http');
 // 防乱码
 const charset = require('superagent-charset');
 // 请求
@@ -31,7 +31,7 @@ router.get('/', function(req, res, next) {
     async function getBookList(url,novelClass) {
         try {
             // 通过请求获取内容 .charset 解决中文乱码
-            const res = await superagent.get(url).charset('gbk');
+            const res = await superagent.get(url).charset('utf-8');
             // 通过cheerio进行dom操作
             let $ = cheerio.load(res.text);
             // 遍历标签
@@ -65,12 +65,12 @@ router.get('/', function(req, res, next) {
      */
     async function getBook(href, book) {
         try {
-            const res = await superagent.get(href).charset('gbk');
+            const res = await superagent.get(href).charset('utf-8');
             let $ = cheerio.load(res.text);
             book.uptime = $("#info p").eq(2).text().replace('最后更新：','');
             book.newChapter = $("#info p").eq(3).text().replace('最新章节： ','');
             book.description = $("#intro p").eq(1).text();
-            book.img = 'https://www.biquge.tv' + $("#fmimg img").attr('src');
+            book.img = $("#fmimg img").attr('src');
             $("#list dd").each((idx, ele) => {
                 let title = $(ele).find('a').text();
                 let href =  $(ele).find('a').attr('href');
@@ -82,7 +82,7 @@ router.get('/', function(req, res, next) {
         }
     }
 
-    getBookList('https://www.biquge.tv/xuanhuanxiaoshuo/', 'xuanhuan').then(books=>{
+    getBookList('http://www.xbiquge.la/xuanhuanxiaoshuo/', 'xuanhuan').then(books=>{
         books.forEach((item, index) => {
             // 需要通过上面获得的书籍href进入详情页 获取详细信息
             getBook(item.href, item).then(val=>{
@@ -133,7 +133,7 @@ router.get('/', function(req, res, next) {
 
 //保存图片
     function saveImage(url,path) {
-        https.get(url,function (req,res) {
+        http.get(url,function (req,res) {
             var imgData = '';
             req.on('data',function (chunk) {
                 imgData += chunk;

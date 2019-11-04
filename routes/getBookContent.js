@@ -57,6 +57,7 @@ router.get('/', function(req, res, next) {
                             let bookContet = new BookContent({
                                 _id: bookContentList[i]._id, // id
                                 href: bookContentList[i].href,
+                                chapterNumber: bookContentList[i].chapterNumber,
                                 bookId: bookContentList[i].bookId, // 书籍id
                                 title: bookContentList[i].title, // 书籍标题
                                 path: bookContentList[i].path // 书籍路径
@@ -83,17 +84,20 @@ router.get('/', function(req, res, next) {
       // 定义章节列表
       let bookContent = [];
 
-      const res = await superagent.get(href).charset('gbk');
+      const res = await superagent.get(href).charset('utf-8');
       let $ = cheerio.load(res.text);
+      let chapterNumber = 0;
       $("#list dd").each((idx, ele) => {
         let title = $(ele).find('a').text();
         let href =  $(ele).find('a').attr('href');
+        chapterNumber++;
         // 这里获取每个章节的信息
         let chapterId = mongoose.Types.ObjectId();
         bookContent.push({
           _id: chapterId,
           title,
           href,
+          chapterNumber,
           bookId,
           path: path.join(__dirname,`../bookList/book/${bookId}/${chapterId}.txt`)
         })
