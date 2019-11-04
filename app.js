@@ -24,6 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', require('./routes/index'));
 app.use('/getBookList', require('./routes/getBookList'));
 app.use('/getBookContent', require('./routes/getBookContent'));
+app.use('/addContentToPath', require('./routes/addContentToPath'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
