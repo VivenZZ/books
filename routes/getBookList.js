@@ -88,6 +88,7 @@ router.get('/', function(req, res, next) {
      * http://www.xbiquge.la/dushixiaoshuo/
      */
     getBookList('http://www.xbiquge.la/xuanhuanxiaoshuo/', 'dushixiaoshuo').then(books=>{
+        let booksLength = books.length;
         books.forEach((item, index) => {
             // 需要通过上面获得的书籍href进入详情页 获取详细信息
             getBook(item.href, item).then(val=>{
@@ -101,7 +102,7 @@ router.get('/', function(req, res, next) {
                         // 如果书籍不存在 添加书籍
                         if (book.length == 0) {
                             let bookId = mongoose.Types.ObjectId();
-                            val.imgPath = path.join(__dirname,`../bookList/image/${bookId}.png`);// 封面图本地路径
+                            val.imgPath = path.join(__dirname,`../bookList/image/${val.name}.png`);// 封面图本地路径
                             saveImage(val.img, val.imgPath);
                             let book = new Book({
                                 _id: bookId,
@@ -126,11 +127,15 @@ router.get('/', function(req, res, next) {
                         }
                         // 如果书籍存在，我们要获取当前章节数 和 数据库的章节数是否相等
                         if (book.length != 0) {
-                            console.log('书籍已经存在，不要重复添加')
+                            console.log(`${val.name}已经存在，不要重复添加`)
                         }
                     }
                 });
             });
+            booksLength--;
+            if (booksLength == 0) {
+                res.send('<a href="/">获取小说列表完毕，点击返回主页</a>')
+            }
 
         })
     });
@@ -155,7 +160,6 @@ router.get('/', function(req, res, next) {
             })
         })
     }
-    res.send('获取书籍列表接口')
 });
 
 module.exports = router;

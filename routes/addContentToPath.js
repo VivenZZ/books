@@ -31,6 +31,7 @@ let BookContent = mongodb.BookContent;
 router.get('/', function(req, res, next) {
     // 读取书籍数据库内容
     Book.find({}).exec(function (err, bookList) {
+        let allbooksLength = bookList.length;
         if (err) console.log(err);
         // 获取书籍列表遍历 每次下载一本书
         async.mapLimit(bookList, 1, (book, callback) => {
@@ -51,7 +52,7 @@ router.get('/', function(req, res, next) {
                 bookId: ID,
                 chapterNumber: {$gt: number}
             }).exec(function (err, bookContents) {
-                console.log(bookContents.length)
+                console.log(bookContents.length);
                 async.mapLimit(bookContents, 10, (bookContent, callback) => {
                     mkDir(`../bookList/books/${name}`,
                         `../bookList/books/${name}/${bookContent.chapterNumber}.txt`,
@@ -75,7 +76,11 @@ router.get('/', function(req, res, next) {
                 }, function(err, results){
                     console.log(results)
                 });*/
-                callback(null, `${name}书籍下载完成`)
+                callback(null, `${name}书籍更新完成`)
+                allbooksLength--;
+                if (allbooksLength == 0) {
+                    res.send('<a href="/">更新完成，点击返回主页</a>')
+                }
             })
         }, (err, results) => {
             if (err) {
@@ -97,9 +102,6 @@ router.get('/', function(req, res, next) {
             console.log(e);
         }
     }
-
-
-    res.send('添加书籍内容到本地文件夹');
 });
 
 module.exports = router;
