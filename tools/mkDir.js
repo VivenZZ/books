@@ -54,7 +54,7 @@ async function mkDir(dir, path, data){
     await dirExists(dir);
     fs.writeFile(path, data, err => {
         if(err) return console.log('写入失败' + err);
-        console.log('写入成功')
+        console.log(`${path}写入成功`)
     })
 }
 

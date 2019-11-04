@@ -17,6 +17,8 @@ let mongoose = require('mongoose');
 let mongodb = require('../db/index.js');
 // 获取创建文本的js
 const mkDir = require('../tools/mkDir.js');
+// 获取文件夹下的文件个数
+const checkFileNumber = require('../tools/checkFileNumber.js');
 
 let Book = mongodb.Book;
 let BookContent = mongodb.BookContent;
@@ -34,26 +36,50 @@ router.get('/', function(req, res, next) {
         bookList.forEach((book, index) => {
             // 获取书籍ID
             let ID = book._id;
+            let name = book.name;
             let href = book.href;
             // 检测bookList/books文件夹下是否有当前id的文件夹
-            if (fs.existsSync(`../bookList/books/${ID}`)){
+            if (fs.existsSync(`./bookList/books/${name}`)){
                 //存在直接进行更新
-                console.log('文件存在')
+                console.log(`================${name}存在,开始更新=====================`)
+                let number = checkFileNumber(`bookList/books/${name}`);
+                console.log(number);
+                BookContent.find({
+                    bookId: ID,
+                    chapterNumber: {$gt: number}
+                }).exec(function (err, bookContents) {
+                    // 循环结果根据href字段找到章节内容
+                    async.mapLimit(bookContents, 50, (bookContent, callback) => {
+                        let url = href + bookContent.href.match(/([0-9]+).html/)[0];
+                        let bookContentNumber = bookContent.chapterNumber;
+                        getBookContenDetails(url).then(data=>{
+                            mkDir(`./bookList/books/${name}`,
+                                `./bookList/books/${name}/${bookContentNumber}.txt`,
+                                data);
+                            callback(null,`${name}下载完成`);
+                        });
+                    }, function(err, results){
+                        console.log(results)
+                    });
+                })
             } else {
+                console.log(`================${name}不存在,开始下载=====================`)
                 // 不存在全部下载
                 // 首先读取bookContent表中的数据
                 BookContent.find({
                     bookId: ID
                 }).exec(function (err, bookContents) {
                     // 循环结果根据href字段找到章节内容
-                    async.mapLimit(bookContents, 2, (bookContent, callback) => {
+                    async.mapLimit(bookContents, 50, (bookContent, callback) => {
                         let url = href + bookContent.href.match(/([0-9]+).html/)[0];
                         let bookContentNumber = bookContent.chapterNumber;
                         getBookContenDetails(url).then(data=>{
-                            mkDir(`./bookList/books/${ID}`,
-                                `./bookList/books/${ID}/${bookContentNumber}.txt`,
+                            mkDir(`./bookList/books/${name}`,
+                                `./bookList/books/${name}/${bookContentNumber}.txt`,
                                 data);
-                            callback(null,bookContent);
+                            callback(null,`${name}下载完成`);
+                        }, function(err, results){
+                            console.log(results)
                         });
                     });
                 })
@@ -65,7 +91,7 @@ router.get('/', function(req, res, next) {
     // 根据url 爬取书籍章节详情
     async function getBookContenDetails(href) {
         try {
-            const res = await superagent.get(href).charset('utf-8');
+            const res = await superagent.get(href).buffer(true).charset('utf-8');
             let $ = cheerio.load(res.text);
             return $("#content").text();
 

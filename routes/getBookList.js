@@ -31,7 +31,7 @@ router.get('/', function(req, res, next) {
     async function getBookList(url,novelClass) {
         try {
             // 通过请求获取内容 .charset 解决中文乱码
-            const res = await superagent.get(url).charset('utf-8');
+            const res = await superagent.get(url).buffer(true).charset('utf-8');
             // 通过cheerio进行dom操作
             let $ = cheerio.load(res.text);
             // 遍历标签
@@ -65,7 +65,7 @@ router.get('/', function(req, res, next) {
      */
     async function getBook(href, book) {
         try {
-            const res = await superagent.get(href).charset('utf-8');
+            const res = await superagent.get(href).buffer(true).charset('utf-8');
             let $ = cheerio.load(res.text);
             book.uptime = $("#info p").eq(2).text().replace('最后更新：','');
             book.newChapter = $("#info p").eq(3).text().replace('最新章节： ','');
@@ -82,7 +82,7 @@ router.get('/', function(req, res, next) {
         }
     }
 
-    getBookList('http://www.xbiquge.la/xuanhuanxiaoshuo/', 'xuanhuan').then(books=>{
+    getBookList('http://www.xbiquge.la/dushixiaoshuo/', 'dushixiaoshuo').then(books=>{
         books.forEach((item, index) => {
             // 需要通过上面获得的书籍href进入详情页 获取详细信息
             getBook(item.href, item).then(val=>{

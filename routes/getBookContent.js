@@ -84,7 +84,7 @@ router.get('/', function(req, res, next) {
       // 定义章节列表
       let bookContent = [];
 
-      const res = await superagent.get(href).charset('utf-8');
+      const res = await superagent.get(href).buffer(true).charset('utf-8');
       let $ = cheerio.load(res.text);
       let chapterNumber = 0;
       $("#list dd").each((idx, ele) => {
