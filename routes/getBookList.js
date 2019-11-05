@@ -89,9 +89,12 @@ router.get('/', function(req, res, next) {
      */
     getBookList('http://www.xbiquge.la/xuanhuanxiaoshuo/', 'dushixiaoshuo').then(books=>{
         let booksLength = books.length;
+        let addBooks = []; //添加的书籍
+        let repeatBooks = []; // 重复的书籍
         books.forEach((item, index) => {
             // 需要通过上面获得的书籍href进入详情页 获取详细信息
             getBook(item.href, item).then(val=>{
+                // 根据 作者和书名，确定不是同一本书
                 Book.find({
                     name: val.name,
                     Author: val.Author
@@ -124,18 +127,21 @@ router.get('/', function(req, res, next) {
                                     console.log('添加成功');
                                 }
                             })
+                            addBooks.push(val.name);
                         }
                         // 如果书籍存在，我们要获取当前章节数 和 数据库的章节数是否相等
                         if (book.length != 0) {
-                            console.log(`${val.name}已经存在，不要重复添加`)
+                            repeatBooks.push(val.name);
                         }
                     }
                 });
-            });
-            booksLength--;
-            if (booksLength == 0) {
-                res.send('<a href="/">获取小说列表完毕，点击返回主页</a>')
-            }
+                booksLength--;
+                if (booksLength == 0) {
+                    console.log(JSON.stringify(repeatBooks) + '书籍已存在，无需添加！');
+                    console.log(JSON.stringify(addBooks) + '书籍添加完毕！');
+                    res.send('<a href="/">获取小说列表完毕，点击返回主页</a>')
+                }
+            })
 
         })
     });

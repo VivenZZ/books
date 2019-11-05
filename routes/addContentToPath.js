@@ -42,17 +42,15 @@ router.get('/', function(req, res, next) {
             let number = 0; // 本地文件夹中的章节数
             if (fs.existsSync(`../bookList/books/${name}`)){
                 //存在直接进行更新
-                console.log(`================${name}存在,开始更新=====================`);
                 number = checkFileNumber(`../bookList/books/${name}`);
             }else {
-                console.log(`================${name}不存在,开始下载=====================`);
                 number = 0;
             }
             BookContent.find({
                 bookId: ID,
                 chapterNumber: {$gt: number}
             }).exec(function (err, bookContents) {
-                console.log(bookContents.length);
+                console.log(`${name}有${bookContents.length}需要更新...`);
                 async.mapLimit(bookContents, 10, (bookContent, callback) => {
                     mkDir(`../bookList/books/${name}`,
                         `../bookList/books/${name}/${bookContent.chapterNumber}.txt`,

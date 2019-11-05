@@ -26,14 +26,19 @@ router.get('/', function (req, res, next) {
         if (err) {
             console.log(err);
         } else {
+            // 添加完成的小说
+            let doneBookContent = [];
             // 拿到数据，循环遍历，根据url查找书籍详情页
             books.forEach((item, index) => {
                 getBook(item.href, item._id).then(bookContentList => {
                     // bookContentList 书籍章节列表
-                    // 查找数据库，如果书籍id不存在，则全部添加
+                    // 查找数据库书籍id的chapterNumber的最大值章节
                     BookContent.find({
                         bookId: item._id
-                    }).exec(function (err, dataBookContent) {
+                    }).sort({'chapterNumber': -1})
+                        .skip(0)
+                        .limit(1)
+                        .exec(function (err, dataBookContent) {
                         if (dataBookContent.length == 0) {
                             // 章节内容不存在
                             BookContent.insertMany(bookContentList, function (err, docs) {
@@ -41,45 +46,42 @@ router.get('/', function (req, res, next) {
                                 console.log(`《${item.name}》章节添加完成`);
                             })
                         } else {
-                            // 章节内容存在，开始对比章节title, 如果title已经存在则返回，不存在则继续添加
-                            // 因为bookContentList是依次添加进去的，所以可以实现从后向前遍历，
-                            // 如果有相同章节出现则不用继续添加了。
-                            let list = [];
-                            dataBookContent.forEach((item, index) => {
-                                list.push(item.title);
+                            /**
+                             * 章节内容存在，我们找到最大章节
+                             */
+                            let maxChapterNumber = dataBookContent[0].chapterNumber;
+
+                            // 循环页面获取的章节列表
+                            bookContentList.forEach((content, index) => {
+                                //如果index>= maxChapterNumber 则 添加到数据库
+                               if (index >= maxChapterNumber) {
+                                   let bookContet = new BookContent({
+                                       _id: content._id, // id
+                                       href: content.href,
+                                       chapterNumber: content.chapterNumber,
+                                       bookId: content.bookId, // 书籍id
+                                       title: content.title, // 书籍标题
+                                       path: content.path // 书籍路径
+                                   });
+                                   bookContet.save(function (err) {
+                                       if (err) {
+                                           console.log(err);
+                                       } else {
+                                           console.log(`添加${item.name}/${content.title}成功`);
+                                       }
+                                   })
+                               }
+
                             });
-                            // 遍历 获取的章节，从后依次向前
-                            for (let i = bookContentList.length - 1; i > 0; i--) {
-                                // 判断数据库中的标题可包含当前标题，包含则退出循环
-                                if (list.includes(bookContentList[i].title)) {
-                                    return;
-                                } else {
-                                    // 不包含当前章节，则添加当前章节到数据库。
-                                    let bookContet = new BookContent({
-                                        _id: bookContentList[i]._id, // id
-                                        href: bookContentList[i].href,
-                                        chapterNumber: bookContentList[i].chapterNumber,
-                                        bookId: bookContentList[i].bookId, // 书籍id
-                                        title: bookContentList[i].title, // 书籍标题
-                                        path: bookContentList[i].path // 书籍路径
-                                    });
-                                    bookContet.save(function (err) {
-                                        if (err) {
-                                            console.log(err);
-                                        } else {
-                                            console.log(`添加${item.name}/${bookContentList[i].title}成功`);
-                                        }
-                                    })
-                                }
-                            }
+                        }
+                        doneBookContent.push(item.name);
+                        booksLength--;
+                        if (booksLength == 0) {
+                            console.log(JSON.stringify(doneBookContent));
+                            res.send('<a href="/">下载小说章节列表完毕，点击返回主页</a>')
                         }
                     });
-                })
-                console.log(`${item.name}章节下载完毕`);
-                booksLength--;
-                if (booksLength == 0) {
-                    res.send('<a href="/">下载小说章节列表完毕，点击返回主页</a>')
-                }
+                });
             })
         }
     });
@@ -89,7 +91,6 @@ router.get('/', function (req, res, next) {
         try {
             // 定义章节列表
             let bookContent = [];
-
             const res = await superagent.get(href).buffer(true).charset('utf-8');
             let $ = cheerio.load(res.text);
             let chapterNumber = 0;
