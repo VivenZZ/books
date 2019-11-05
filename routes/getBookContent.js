@@ -26,8 +26,6 @@ router.get('/', function (req, res, next) {
         if (err) {
             console.log(err);
         } else {
-            // 添加完成的小说
-            let doneBookContent = [];
             // 拿到数据，循环遍历，根据url查找书籍详情页
             books.forEach((item, index) => {
                 getBook(item.href, item._id).then(bookContentList => {
@@ -74,10 +72,9 @@ router.get('/', function (req, res, next) {
 
                             });
                         }
-                        doneBookContent.push(item.name);
                         booksLength--;
                         if (booksLength == 0) {
-                            console.log(JSON.stringify(doneBookContent));
+                            console.log('章节全部更新完成');
                             res.send('<a href="/">下载小说章节列表完毕，点击返回主页</a>')
                         }
                     });

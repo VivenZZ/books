@@ -26,6 +26,11 @@ app.use('/getBookList', require('./routes/getBookList'));
 app.use('/getBookContent', require('./routes/getBookContent'));
 app.use('/addContentToPath', require('./routes/addContentToPath'));
 
+// 请求接口
+app.use('/api', require('./routes/reqApi/getBookList'));
+
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

@@ -50,7 +50,7 @@ router.get('/', function(req, res, next) {
                 bookId: ID,
                 chapterNumber: {$gt: number}
             }).exec(function (err, bookContents) {
-                console.log(`${name}有${bookContents.length}需要更新...`);
+                console.log(`${name}有${bookContents.length}章需要更新...`);
                 async.mapLimit(bookContents, 10, (bookContent, callback) => {
                     mkDir(`../bookList/books/${name}`,
                         `../bookList/books/${name}/${bookContent.chapterNumber}.txt`,
