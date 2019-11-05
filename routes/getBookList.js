@@ -87,7 +87,8 @@ router.get('/', function(req, res, next) {
      * http://www.xbiquge.la/xiuzhenxiaoshuo/
      * http://www.xbiquge.la/dushixiaoshuo/
      */
-    getBookList('http://www.xbiquge.la/xuanhuanxiaoshuo/', 'dushixiaoshuo').then(books=>{
+    let url = 'http://www.xbiquge.la/xiuzhenxiaoshuo/'
+    getBookList(url, url.match(/([a-z]+)\/$/)[1]).then(books=>{
         let booksLength = books.length;
         let addBooks = []; //添加的书籍
         let repeatBooks = []; // 重复的书籍
@@ -124,7 +125,7 @@ router.get('/', function(req, res, next) {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    console.log('添加成功');
+                                    console.log(`${val.name}添加成功`);
                                 }
                             })
                             addBooks.push(val.name);

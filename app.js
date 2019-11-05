@@ -21,13 +21,27 @@ app.use(cookieParser());
 app.use(lessMiddleware(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+/**
+ * 跨域
+ */
+app.all('*', (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+  res.header("X-Powered-By",' 3.2.1')
+  res.header("Content-Type", "application/json;charset=utf-8");
+  next();
+});
+
 app.use('/', require('./routes/index'));
 app.use('/getBookList', require('./routes/getBookList'));
 app.use('/getBookContent', require('./routes/getBookContent'));
 app.use('/addContentToPath', require('./routes/addContentToPath'));
 
 // 请求接口
-app.use('/api', require('./routes/reqApi/getBookList'));
+app.use('/api', require('./routes/reqApi/getBooks'));
+app.use('/api/book', require('./routes/reqApi/getBookDetail'));
+
 
 
 
