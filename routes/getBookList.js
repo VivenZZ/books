@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
-const http = require('http');
+const https = require('https');
 // 防乱码
 const charset = require('superagent-charset');
 // 请求
@@ -28,28 +28,33 @@ router.get('/', function(req, res, next) {
      * @param novelClass 书籍分类
      * @returns {Promise<void>} 返回一个promise 结果值为书籍列表
      */
-    async function getBookList(url,novelClass) {
+    async function getBookList(url) {
         try {
             // 通过请求获取内容 .charset 解决中文乱码
-            const res = await superagent.get(url).buffer(true).charset('utf-8');
+            const res = await superagent.get(url).buffer(true).charset('gbk');
             // 通过cheerio进行dom操作
             let $ = cheerio.load(res.text);
             // 遍历标签
-            $('div#newscontent .r li').each((idx, ele) => {
-                // 定义书标签内容
-                let book = {
-                    name: $(ele).find('.s2 a').text(),
-                    href: $(ele).find('.s2 a').attr('href'),
-                    Author: $(ele).find('.s5').text(),
-                    newChapter: '',
-                    uptime: '',
-                    description: '',
-                    img: '',
-                    imgPath: '',
-                    novelclass: novelClass,
-                    status: false
-                };
-                bookList.push(book)
+            $('.table tr').each((idx, ele) => {
+                // 如果不是第一行就开始
+                if (idx != 0) {
+                    // 定义书标签内容
+                    let book = {
+                        name: $(ele).find('td').eq(0).find('a').text(),
+                        href: $(ele).find('td').eq(0).find('a').attr('href'),
+                        Author: $(ele).find('td').eq(2).text(),
+                        newChapter: $(ele).find('td').eq(1).find('a').text(),
+                        uptime: $(ele).find('td').eq(4).text(),
+                        description: '',
+                        img: '',
+                        imgPath: '',
+                        novelclass: '',
+                        numbers: '',
+                        hot: $(ele).find('td').eq(3).text(),
+                        status: $(ele).find('td').eq(5).text()
+                    };
+                    bookList.push(book)
+                }
             });
             return bookList;
         } catch (e) {
@@ -65,17 +70,12 @@ router.get('/', function(req, res, next) {
      */
     async function getBook(href, book) {
         try {
-            const res = await superagent.get(href).buffer(true).charset('utf-8');
+            const res = await superagent.get(href).buffer(true).charset('gbk');
             let $ = cheerio.load(res.text);
-            book.uptime = $("#info p").eq(2).text().replace('最后更新：','');
-            book.newChapter = $("#info p").eq(3).text().replace('最新章节： ','');
-            book.description = $("#intro p").eq(1).text();
-            book.img = $("#fmimg img").attr('src');
-            $("#list dd").each((idx, ele) => {
-                let title = $(ele).find('a').text();
-                let href =  $(ele).find('a').attr('href');
-                // 这里获取每个章节的信息
-            });
+            book.novelclass = $(".booktag .red").eq(1).text();
+            book.description = $("#bookIntro").text().replace(/(^\s*)|(\s*$)/g, "");
+            book.img = $(".img-thumbnail").attr('src');
+            book.numbers = $(".booktag .blue").eq(0).text().replace('字数：','');
             return book;
         } catch (e) {
             console.log(e);
@@ -83,12 +83,9 @@ router.get('/', function(req, res, next) {
     }
 
     /**
-     * http://www.xbiquge.la/xuanhuanxiaoshuo/
-     * http://www.xbiquge.la/xiuzhenxiaoshuo/
-     * http://www.xbiquge.la/dushixiaoshuo/
      */
-    let url = 'http://www.xbiquge.la/xiuzhenxiaoshuo/'
-    getBookList(url, url.match(/([a-z]+)\/$/)[1]).then(books=>{
+    let url = 'https://www.ranwen8.com/top/allvote/'
+    getBookList(url).then(books=>{
         let booksLength = books.length;
         let addBooks = []; //添加的书籍
         let repeatBooks = []; // 重复的书籍
@@ -106,8 +103,8 @@ router.get('/', function(req, res, next) {
                         // 如果书籍不存在 添加书籍
                         if (book.length == 0) {
                             let bookId = mongoose.Types.ObjectId();
-                            val.imgPath = path.join(__dirname,`../bookList/image/${val.name}.png`);// 封面图本地路径
-                            saveImage(val.img, val.imgPath);
+                            val.imgPath = `/image/${val.name}.png`;// 封面图本地路径
+                            saveImage(val.img, path.join(__dirname,`../bookList/image/${val.name}.png`));
                             let book = new Book({
                                 _id: bookId,
                                 name: val.name, // 名称
@@ -117,6 +114,8 @@ router.get('/', function(req, res, next) {
                                 uptime: val.uptime, // 更新时间
                                 description: val.description, // 简介
                                 img: val.img, // 封面图
+                                hot: val.hot,
+                                numbers: val.numbers,
                                 novelclass: val.novelclass, // 分类
                                 imgPath: val.imgPath, // 封面图本地路径
                                 status: val.status // 状态 连载or完本
@@ -150,7 +149,7 @@ router.get('/', function(req, res, next) {
 
 //保存图片
     function saveImage(url,path) {
-        http.get(url,function (req,res) {
+        https.get(url,function (req,res) {
             var imgData = '';
             req.on('data',function (chunk) {
                 imgData += chunk;

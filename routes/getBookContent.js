@@ -88,10 +88,10 @@ router.get('/', function (req, res, next) {
         try {
             // 定义章节列表
             let bookContent = [];
-            const res = await superagent.get(href).buffer(true).charset('utf-8');
+            const res = await superagent.get(href).buffer(true).charset('gbk');
             let $ = cheerio.load(res.text);
             let chapterNumber = 0;
-            $("#list dd").each((idx, ele) => {
+            $("#list-chapterAll .panel-chapterlist dd").each((idx, ele) => {
                 let title = $(ele).find('a').text();
                 let href = $(ele).find('a').attr('href');
                 chapterNumber++;
@@ -103,7 +103,7 @@ router.get('/', function (req, res, next) {
                     href,
                     chapterNumber,
                     bookId,
-                    path: path.join(__dirname, `../bookList/book/${bookId}/${chapterId}.txt`)
+                    path: path.join(__dirname, `/book/${bookId}/${chapterId}.txt`)
                 })
             });
             return bookContent;

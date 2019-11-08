@@ -16,7 +16,9 @@ let bookSchema = new mongoose.Schema({
     img: String, // 封面图
     novelclass: String, // 分类
     imgPath: String, // 封面图本地路径
-    status: Boolean // 状态 连载or完本
+    hot: String,
+    numbers: String,
+    status: String // 状态 连载or完本
 });
 // 定义书籍模型
 let bookContentSchema = new mongoose.Schema({
