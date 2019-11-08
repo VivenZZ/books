@@ -23,12 +23,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /**
  * 跨域
+ * 不能用*放置请求其他非接口页面返回json数据
  */
-app.all('*', (req, res, next) => {
+
+app.all('/api', (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
-  res.header("X-Powered-By",' 3.2.1')
+  res.header("X-Powered-By",' 3.2.1');
   res.header("Content-Type", "application/json;charset=utf-8");
   next();
 });
