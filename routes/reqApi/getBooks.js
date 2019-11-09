@@ -11,9 +11,36 @@ let Book = mongodb.Book;
  * 请求所有书籍列表
  */
 router.get('/books', function(req, res, next) {
-    console.log(req.params.id);
-    Book.find({}).exec((err, books) => {
-        res.json({books})
+    let pageNumber = req.query.pageNumber;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 5;
+    let classId = req.query.classId;
+    let status = req.query.status;
+    let opt = {}
+    switch (classId) {
+        case 'xuanhuan':
+            opt.classId = '玄幻小说'
+            break
+        case 'dushi':
+            opt.classId = '都市小说'
+            break
+        case 'xianxia':
+            opt.classId = '仙侠小说'
+            break
+        case 'lishi':
+            opt.classId = '历史小说'
+            break
+    }
+    if(status == 1) {
+        opt.status = '连载中'
+    }
+    if(status == 2) {
+        opt.status = '已完成'
+    }
+    let limitNumber = pageSize * (pageNumber-1);
+    Book.find(opt).countDocuments((err, count) => {
+        Book.find(opt).skip(limitNumber).limit(pageSize).sort({hot: -1}).exec((err, books) => {
+            res.json({books, count})
+        })
     })
 });
 /**
