@@ -44,6 +44,7 @@ app.use('/addContentToPath', require('./routes/addContentToPath'));
 // 请求接口
 app.use('/api', require('./routes/reqApi/getBooks'));
 app.use('/api/book', require('./routes/reqApi/getBookDetail'));
+app.use('/api/bookChapter', require('./routes/reqApi/getChapter'));
 
 
 

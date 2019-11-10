@@ -51,11 +51,10 @@ async function dirExists(dir){
  * @param callback 异步调用，用于高并发处理
  * @returns {Promise<void>}
  */
-async function mkDir(dir, path, data, callback){
+async function mkDir(dir, path, data){
     await dirExists(dir);
     fs.writeFile(path, data, err => {
         if(err) return console.log(`${path}写入失败${err}`);
-        callback(err,'${path}写入成功')
     })
 }
 

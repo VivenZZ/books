@@ -103,7 +103,7 @@ router.get('/', function (req, res, next) {
                     href,
                     chapterNumber,
                     bookId,
-                    path: path.join(__dirname, `/book/${bookId}/${chapterId}.txt`)
+                    path: `/books/${bookId}/${chapterId}.txt`
                 })
             });
             return bookContent;
