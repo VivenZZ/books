@@ -25,17 +25,23 @@ let BookContent = mongodb.BookContent;
 /**
  * 请求所有书籍列表
  */
+let text = ''
 async function getBookContenDetails(href) {
   try {
     const res = await superagent.get(href).buffer(true).charset('gbk');
     let $ = cheerio.load(res.text);
-    let text = ''
-    let newHref = href.replace(/([0-9]+)(_([0-9]))?.html$/,'');
+    let newHref = href.replace(/.html$/,'');
     // 获取页码
-    let ym = $(".readTitle small").text().match(/[0-9]/);
+    let ym = $(".readTitle small").text().match(/[0-9]/g);
+    text += $("#htmlContent").text();
+    if (!ym || ym[0] == ym[1]){
+      return text;
+    }
     if (ym[0] < ym[1]){
-      text += $("#htmlContent").text();
-      getBookContenDetails(`${newHref}_${ym[0]}.html`)
+      getBookContenDetails(`${newHref}_${++ym[0]}.html`).then(data=>{
+        console.log('第二次' + data);
+        text += data;
+      });
     }
     return text;
   } catch (e) {
