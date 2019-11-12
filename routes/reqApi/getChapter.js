@@ -31,8 +31,13 @@ async function getBookContenDetails(href) {
     let $ = cheerio.load(res.text);
     // 获取页码
     let ym = $(".readTitle small").text().match(/[0-9]/g);
+    console.log(ym)
     let text = $("#htmlContent").text();
-    return {text,currentPage: ym[0], pages: ym[1]};
+    if (ym) {
+      return {text,currentPage: ym[0], pages: ym[1]};
+    } else {
+      return {text, currentPage: 0, pages: 0};
+    }
   } catch (e) {
     console.log(e);
   }
@@ -41,19 +46,37 @@ router.get('/:chapterId', function(req, res, next) {
   BookContent.find({_id: req.params.chapterId}).exec((err, chapter) => {
     let bookId = chapter[0].bookId;
     let chapterId =  chapter[0]._id;
+    let bookTitle = chapter[0].title;
     if (fs.existsSync(`bookList/books/${bookId}/${chapterId}.txt`)) {
       console.log('文件已存在');
+      fs.readFile(`bookList/books/${bookId}/${chapterId}.txt`,'utf-8', (err, data) => {
+        if (err) {
+          res.json({msg: '文件读取失败'})
+        } else {
+          res.json({title: bookTitle, text: `&nbsp;&nbsp;&nbsp; ${data.replace(/\n+/g, '<br />')}`})
+        }
+      })
+
     } else {
       console.log('文件不存在');
       let text = '';
       getBookContenDetails(`https://www.ranwen8.com${ chapter[0].href}`).then(data=>{
-        console.log(data);
         let newHref = `https://www.ranwen8.com${chapter[0].href}`.replace(/.html$/,'');
+        if (data.currentPage == data.pages) {
+          text+=data.text.replace(/燃文小说网([\d\D]*)最新章节！|-->>本章未完，点击下一页继续阅读/g,'').replace(/(^\s*)|(\s*$)/g, "");;
+          mkDir(`./bookList/books/${bookId}`,
+            `./bookList/books/${bookId}/${chapterId}.txt`,
+            text);
+          res.json({title: bookTitle, text: `&nbsp;&nbsp;&nbsp; ${text.replace(/\n+/g, '<br />')}`})
+        }
         if (data.currentPage < data.pages){
-          text+=data.text;
+          text+=data.text.replace(/燃文小说网([\d\D]*)最新章节！|-->>本章未完，点击下一页继续阅读/g,'').replace(/(^\s*)|(\s*$)/g, "");;
           getBookContenDetails(`${newHref}_${++data.currentPage}.html`).then(data=>{
-            text += data.text;
-            res.json(text)
+            text += data.text.replace(/燃文小说网([\d\D]*)最新章节！|-->>本章未完，点击下一页继续阅读/g,'').replace(/(^\s*)|(\s*$)/g, "");;
+            mkDir(`./bookList/books/${bookId}`,
+              `./bookList/books/${bookId}/${chapterId}.txt`,
+              text);
+            res.json({title: bookTitle, text: `&nbsp;&nbsp;&nbsp; ${text.replace(/\n+/g, '<br />')}`})
           });
         }
         // mkDir(`./bookList/books/${bookId}`,
